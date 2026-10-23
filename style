@@ -1,0 +1,234 @@
+/* Variables de diseño y colores limpios/médicos */
+:root {
+  --primary-color: #0d9488;
+  --primary-hover: #0f766e;
+  --bg-color: #f0fdfa;
+  --card-bg: #ffffff;
+  --user-msg-bg: #0d9488;
+  --user-msg-color: #ffffff;
+  --bot-msg-bg: #f1f5f9;
+  --bot-msg-color: #1e293b;
+  --border-color: #e2e8f0;
+  --text-muted: #64748b;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+/* Contenedor tipo marco celular/aplicación */
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  height: 90vh;
+  max-height: 800px;
+  background-color: var(--card-bg);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+/* Encabezado */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  background-color: #ccfbf1;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.4rem;
+}
+
+.header-info h1 {
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.header-info p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+}
+
+/* Estructura del boceto: Zona de chat */
+.zona-de-chat {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background-color: #f8fafc;
+}
+
+.message {
+  display: flex;
+  max-width: 85%;
+}
+
+.user-message {
+  align-self: flex-end;
+}
+
+.bot-message {
+  align-self: flex-start;
+}
+
+.message-content {
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.user-message .message-content {
+  background-color: var(--user-msg-bg);
+  color: var(--user-msg-color);
+  border-bottom-right-radius: 4px;
+}
+
+.bot-message .message-content {
+  background-color: var(--bot-msg-bg);
+  color: var(--bot-msg-color);
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.error-message .message-content {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+/* Estructura del boceto: Zona de escritura */
+.zona-de-escritura {
+  padding: 16px;
+  background-color: #ffffff;
+  border-top: 1px solid var(--border-color);
+}
+
+.input-form {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+textarea {
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  resize: none;
+  outline: none;
+  max-height: 100px;
+  transition: border-color 0.2s;
+}
+
+textarea:focus {
+  border-color: var(--primary-color);
+}
+
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  flex-shrink: 0;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.send-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Indicador de carga animado */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Responsivo para móviles */
+@media (max-width: 480px) {
+  body {
+    padding: 0;
+  }
+  .app-container {
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+}
