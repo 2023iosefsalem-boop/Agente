@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultor Médico - Agente IA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Contenedor principal de la interfaz -->
+  <div class="app-container">
+    
+    <!-- Encabezado del Agente -->
+    <header class="app-header">
+      <div class="avatar">🩺</div>
+      <div class="header-info">
+        <h1>Consultor Médico</h1>
+        <p><span class="status-dot"></span> Asistente para trámites y consultas específicas</p>
+      </div>
+    </header>
+
+    <!-- Zona de chat: Área para visualizar la conversación -->
+    <main class="zona-de-chat" id="zonaDeChat">
+      <div class="message bot-message">
+        <div class="message-content">
+          👋 ¡Hola! Soy tu <strong>Consultor Médico</strong>. ¿En qué trámite o consulta médica te puedo ayudar hoy?
+        </div>
+      </div>
+    </main>
+
+    <!-- Zona de escritura: Área de entrada de mensaje y envío -->
+    <footer class="zona-de-escritura">
+      <form id="chatForm" class="input-form">
+        <textarea 
+          id="userInput" 
+          placeholder="Escribí tu consulta sobre trámites médicos aquí..." 
+          rows="1" 
+          required></textarea>
+        <button type="submit" id="sendBtn" title="Enviar mensaje">
+          <svg class="send-icon" viewBox="0 0 24 24">
+            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+          </svg>
+        </button>
+      </form>
+    </footer>
+
+  </div>
+
+  <!-- Carga de archivos de configuración y lógica JS -->
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
