@@ -1,16 +1,33 @@
-// Referencias a elementos del DOM (respetando los nombres del boceto)
+// Referencias a elementos del DOM
 const zonaDeChat = document.getElementById('zonaDeChat');
 const chatForm = document.getElementById('chatForm');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
 
-// Variables de estado
+// Variables de estado y configuración
 let isWaitingResponse = false;
-const TIMEOUT_MS = 15000; // Tiempo límite de espera: 15 segundos
-const COOLDOWN_MS = 2000; // Temporizador entre envíos
+const TIMEOUT_MS = 30000; // Tiempo límite de espera: 30 segundos
+const COOLDOWN_MS = 1500;  // Pausa mínima entre envíos: 1.5 segundos
 
-// Ajuste automático de altura para el textarea
+// Generación o recuperación de sessionId único
+let sessionId;
+try {
+  sessionId = localStorage.getItem('chat_session_id');
+  if (!sessionId) {
+    sessionId = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    localStorage.setItem('chat_session_id', sessionId);
+  }
+} catch (e) {
+  sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+}
+
+// Ajuste automático de altura para el textarea y validación de 500 caracteres
 userInput.addEventListener('input', () => {
+  if (userInput.value.length > 500) {
+    userInput.value = userInput.value.substring(0, 500);
+  }
   userInput.style.height = 'auto';
   userInput.style.height = `${userInput.scrollHeight}px`;
 });
@@ -26,69 +43,139 @@ userInput.addEventListener('keydown', (e) => {
 // Manejador del evento submit
 chatForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const messageText = userInput.value.trim();
+  const mensaje = userInput.value.trim();
 
-  if (!messageText || isWaitingResponse) return;
+  if (!mensaje || isWaitingResponse) return;
+
+  if (mensaje.length > 500) {
+    appendMessage('⚠️ El mensaje supera el límite de 500 caracteres.', 'bot', true);
+    return;
+  }
+
+  // Validación de URL de webhook sin configurar
+  if (typeof WEBHOOK_URL === 'undefined' || !WEBHOOK_URL || WEBHOOK_URL.includes('ACA VA') || WEBHOOK_URL.includes('ejemplo-webhook-prueba')) {
+    appendMessage('Falta pegar la URL de tu webhook en config.js', 'bot', true);
+    return;
+  }
 
   // Agregar mensaje del usuario a la zona de chat
-  appendMessage(messageText, 'user');
+  appendMessage(mensaje, 'user');
   userInput.value = '';
   userInput.style.height = 'auto';
 
-  // Bloquear interfaz para evitar múltiples envíos
+  // Bloquear interfaz y mostrar indicador de carga
   setLoadingState(true);
-
-  // Mostrar mensaje temporal de 'cargando'
   const loadingElement = createLoadingIndicator();
   zonaDeChat.appendChild(loadingElement);
   scrollToBottom();
 
-  // Configuración de AbortController para tiempo límite
+  // Configuración de AbortController (30 segundos límite)
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    // Petición asíncrona al Webhook
+    const fecha = new Date().toISOString();
     const response = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ message: messageText }),
+      body: JSON.stringify({ sessionId, mensaje, fecha }),
       signal: controller.signal
     });
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`Error en el servidor: ${response.status}`);
+      loadingElement.remove();
+      appendMessage(`Make respondió con error (código ${response.status}). Revisá que tu escenario esté en Active o que hayas apretado Run once.`, 'bot', true);
+      return;
     }
 
-    const data = await response.json();
-    
-    // Quitar indicador de carga e insertar respuesta
+    const rawText = await response.text();
+    const text = rawText.trim();
     loadingElement.remove();
-    const botReply = data.response || data.message || "Solicitud procesada correctamente.";
-    appendMessage(botReply, 'bot');
+
+    if (!text) {
+      appendMessage('(respuesta vacía)', 'bot');
+      return;
+    }
+
+    // Limpiar envoltorios Markdown (como ```json y ```)
+    let cleanedText = text;
+    if (cleanedText.startsWith('```')) {
+      cleanedText = cleanedText.replace(/^```[a-zA-Z]*\n?/, '').replace(/```$/, '').trim();
+    }
+
+    let parsedData = null;
+    try {
+      parsedData = JSON.parse(cleanedText);
+    } catch (jsonErr) {
+      if (cleanedText.startsWith('{') && cleanedText.endsWith('}')) {
+        const extracted = extractFieldFromJSONText(cleanedText);
+        if (extracted !== null) {
+          appendMessage(extracted, 'bot');
+          return;
+        }
+        try {
+          const fixedText = cleanedText.replace(/:\s*"([^"]*?)\n([^"]*?)"/g, (match, p1, p2) => {
+            return `: "${p1}\\n${p2}"`;
+          });
+          parsedData = JSON.parse(fixedText);
+        } catch (e2) {
+          const extractedRetry = extractFieldFromJSONText(cleanedText);
+          if (extractedRetry !== null) {
+            appendMessage(extractedRetry, 'bot');
+            return;
+          }
+        }
+      }
+    }
+
+    if (parsedData !== null && typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+      const botReply = parsedData.response || parsedData.respuesta || parsedData.message || parsedData.mensaje;
+      if (botReply !== undefined && botReply !== null && String(botReply).trim() !== '') {
+        appendMessage(String(botReply), 'bot');
+      } else {
+        appendMessage('Make respondió, pero sin el campo response', 'bot', true);
+      }
+    } else if (parsedData !== null) {
+      appendMessage(String(parsedData), 'bot');
+    } else {
+      appendMessage(cleanedText, 'bot');
+    }
 
   } catch (error) {
     clearTimeout(timeoutId);
     loadingElement.remove();
 
     if (error.name === 'AbortError') {
-      appendMessage('⚠️ La solicitud tardó demasiado tiempo en responder. Intentá de nuevo.', 'bot', true);
+      appendMessage('⚠️ La solicitud tardó demasiado tiempo en responder (tiempo agotado).', 'bot', true);
+    } else if (!navigator.onLine || error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      appendMessage('⚠️ Error de red: no se pudo conectar con el servidor.', 'bot', true);
     } else {
-      appendMessage('⚠️ No se pudo conectar con el servidor de prueba. Verificá tu conexión o la URL configurada.', 'bot', true);
+      appendMessage(`⚠️ Error del servidor: ${error.message}`, 'bot', true);
     }
   } finally {
-    // Mantiene deshabilitado brevemente para el cooldown de seguridad
     setTimeout(() => {
       setLoadingState(false);
     }, COOLDOWN_MS);
   }
 });
 
-// Función para insertar mensajes en la Zona de Chat
+// Extractor auxiliar por regex para JSON con saltos de línea internos
+function extractFieldFromJSONText(text) {
+  for (const key of ['response', 'respuesta', 'message', 'mensaje']) {
+    const regex = new RegExp(`["']?${key}["']?\\s*:\\s*"([^]*?)(?<!\\\\)"`, 'i');
+    const match = text.match(regex);
+    if (match && match[1]) {
+      return match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+    }
+  }
+  return null;
+}
+
+// Función para insertar mensajes en la Zona de Chat usando textContent
 function appendMessage(text, sender, isError = false) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', `${sender}-message`);
@@ -120,7 +207,7 @@ function createLoadingIndicator() {
   return loadingDiv;
 }
 
-// Control visual de bloqueo/desbloqueo del botón e input
+// Control visual de bloqueo/desbloqueo
 function setLoadingState(loading) {
   isWaitingResponse = loading;
   sendBtn.disabled = loading;
