@@ -1,4 +1,6 @@
-const WEBHOOK_URL = "[https://hook.us2.make.com/blg7534v7vlvp1l3qgf8isj3f8aau2gp](https://hook.us2.make.com/blg7534v7vlvp1l3qgf8isj3f8aau2gp)";
+const WEBHOOK_URL = "https://hook.us2.make.com/blg7534v7vlvp1l3qgf8isj3f8aau2gp";
+
+// Referencias a elementos del DOM
 const zonaDeChat = document.getElementById('zonaDeChat');
 const chatForm = document.getElementById('chatForm');
 const userInput = document.getElementById('userInput');
@@ -177,4 +179,47 @@ function extractFieldFromJSONText(text) {
 
 // Función para insertar mensajes en la Zona de Chat usando textContent
 function appendMessage(text, sender, isError = false) {
-  const
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('message', `${sender}-message`);
+  if (isError) messageDiv.classList.add('error-message');
+
+  const contentDiv = document.createElement('div');
+  contentDiv.classList.add('message-content');
+  contentDiv.textContent = text;
+
+  messageDiv.appendChild(contentDiv);
+  zonaDeChat.appendChild(messageDiv);
+  scrollToBottom();
+}
+
+// Indicador visual de cargando
+function createLoadingIndicator() {
+  const loadingDiv = document.createElement('div');
+  loadingDiv.classList.add('message', 'bot-message');
+  
+  const contentDiv = document.createElement('div');
+  contentDiv.classList.add('message-content', 'typing-indicator');
+  contentDiv.innerHTML = `
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+  `;
+  
+  loadingDiv.appendChild(contentDiv);
+  return loadingDiv;
+}
+
+// Control visual de bloqueo/desbloqueo
+function setLoadingState(loading) {
+  isWaitingResponse = loading;
+  sendBtn.disabled = loading;
+  userInput.disabled = loading;
+  if (!loading) {
+    userInput.focus();
+  }
+}
+
+// Auto-scroll al final de la zona de chat
+function scrollToBottom() {
+  zonaDeChat.scrollTop = zonaDeChat.scrollHeight;
+}
