@@ -1,6 +1,4 @@
-const WEBHOOK_URL = "https://hook.us2.make.com/blg7534v7vlvp1l3qgf8isj3f8aau2gp";
-
-// Referencias a elementos del DOM
+const WEBHOOK_URL = "[https://hook.us2.make.com/blg7534v7vlvp1l3qgf8isj3f8aau2gp](https://hook.us2.make.com/blg7534v7vlvp1l3qgf8isj3f8aau2gp)";
 const zonaDeChat = document.getElementById('zonaDeChat');
 const chatForm = document.getElementById('chatForm');
 const userInput = document.getElementById('userInput');
