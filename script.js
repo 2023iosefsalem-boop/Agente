@@ -1,17 +1,14 @@
 const WEBHOOK_URL = "https://hook.us2.make.com/blg7534v7vlvp1l3qgf8isj3f8aau2gp";
 
-// Referencias a elementos del DOM
 const zonaDeChat = document.getElementById('zonaDeChat');
 const chatForm = document.getElementById('chatForm');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
 
-// Variables de estado y configuración
 let isWaitingResponse = false;
 const TIMEOUT_MS = 30000;
 const COOLDOWN_MS = 1500;
 
-// Generación o recuperación de sessionId único
 let sessionId;
 try {
   sessionId = localStorage.getItem('chat_session_id');
@@ -25,7 +22,6 @@ try {
   sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 }
 
-// Ajuste automático de altura y límite de 500 caracteres
 userInput.addEventListener('input', () => {
   if (userInput.value.length > 500) {
     userInput.value = userInput.value.substring(0, 500);
@@ -34,7 +30,6 @@ userInput.addEventListener('input', () => {
   userInput.style.height = `${userInput.scrollHeight}px`;
 });
 
-// Envío con Enter (sin Shift)
 userInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -42,7 +37,6 @@ userInput.addEventListener('keydown', (e) => {
   }
 });
 
-// Manejador del envío
 chatForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const mensaje = userInput.value.trim();
